@@ -113,6 +113,24 @@ func (cc ClientConfig) ConnectOpt() ([]nats.Option, error) {
 	opts := []nats.Option{
 		nats.Timeout(connectTimeout),
 		nats.RetryOnFailedConnect(cc.RetryOnFailedConnect),
+		nats.MaxReconnects(-1),
+		nats.ReconnectWait(time.Second),
+		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
+			if err != nil {
+				fmt.Printf("NATS Client Disconnected due to: %s, will attempt reconnect\n", err)
+			}
+		}),
+		nats.ReconnectHandler(func(nc *nats.Conn) {
+			fmt.Printf("NATS Client Reconnected [%s]\n", nc.ConnectedUrl())
+		}),
+		nats.ErrorHandler(func(nc *nats.Conn, _ *nats.Subscription, err error) {
+			url := nc.ConnectedUrl()
+			if url == "" {
+				fmt.Printf("NATS Client Unexpected error: %s", err)
+			} else {
+				fmt.Printf("NATS Client Unexpected error from server %s: %s", url, err)
+			}
+		}),
 	}
 
 	if cc.ClientId != "" {
