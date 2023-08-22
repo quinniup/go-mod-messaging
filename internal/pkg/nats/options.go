@@ -114,6 +114,8 @@ func (cc ClientConfig) ConnectOpt() ([]nats.Option, error) {
 		nats.Timeout(connectTimeout),
 		nats.RetryOnFailedConnect(cc.RetryOnFailedConnect),
 		nats.MaxReconnects(-1),
+		nats.PingInterval(time.Second * 20),
+		nats.MaxPingsOutstanding(3),
 		nats.ReconnectWait(time.Second),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			if err != nil {
